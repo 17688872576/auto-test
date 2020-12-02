@@ -5,7 +5,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>worker</module>
-        <module>illustration-manage</module>
         <module>common</module>
         <module>reporter</module>
         <module>bug-manege</module>
@@ -59,7 +58,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <!--<scope>test</scope>-->
         </dependency>
     </dependencies>
 

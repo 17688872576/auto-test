@@ -35,7 +35,7 @@ public class HttpUtil {
     /* 创建一个ThreadLocal，用来存放 CloseableHttpClient */
     private static ThreadLocal<CloseableHttpClient> threadLocal = new ThreadLocal<>();
 
-    private static final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(0,8,2,TimeUnit.SECONDS,new LinkedBlockingQueue<>());
+    private static final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 8, 2, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
     private static List<Future<CloseableHttpResponse>> futureList = new CopyOnWriteArrayList<>();
 
@@ -51,6 +51,7 @@ public class HttpUtil {
 
     /**
      * 获取一个CloseableHttpClient 实例
+     *
      * @return
      */
     private static CloseableHttpClient getRquest() {
@@ -124,13 +125,13 @@ public class HttpUtil {
         HttpGet httpGet = new HttpGet();
         // 请求头设置
         Map<String, String> opHeaders = Optional.ofNullable(headers).orElse(new HashMap<>());
-        opHeaders.forEach((k,v)->httpGet.setHeader(k,v));
+        opHeaders.forEach((k, v) -> httpGet.setHeader(k, v));
         try {
             URIBuilder uriBuilder = new URIBuilder(url);
             URI uri = uriBuilder.build();
             httpGet.setURI(uri);
             Map<String, Object> opParams = Optional.ofNullable(params).orElse(new HashMap<>());
-            opParams.forEach((k,v)->uriBuilder.setParameter(k, String.valueOf(v)));
+            opParams.forEach((k, v) -> uriBuilder.setParameter(k, String.valueOf(v)));
             Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpGet));
             futureList.add(future);
         } catch (Exception e) {
@@ -144,7 +145,7 @@ public class HttpUtil {
     public static void post(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpPost httpPost = new HttpPost(url);
-        Optional.ofNullable(headers).orElse(new HashMap<>()).forEach((k,v)->httpPost.setHeader(k, v));
+        Optional.ofNullable(headers).orElse(new HashMap<>()).forEach((k, v) -> httpPost.setHeader(k, v));
         try {
             Map<String, Object> opParams = Optional.ofNullable(params).orElse(new HashMap<>());
             ObjectMapper mapper = new ObjectMapper();
@@ -215,9 +216,9 @@ public class HttpUtil {
         }
     }
 
-    public static List<HttpResult> getHttpResult(){
+    public static List<HttpResult> getHttpResult() {
         List<HttpResult> resultList = new ArrayList<>();
-        futureList.forEach(f->{
+        futureList.forEach(f -> {
             try {
                 CloseableHttpResponse response = f.get();
                 HttpResult httpResult = closeRequest(response);
@@ -257,5 +258,4 @@ public class HttpUtil {
             }
         }
     }
-
 }

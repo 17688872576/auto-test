@@ -1,6 +1,0 @@
-server:
-  port: 13301
-spring:
-  data:
-    mongodb:
-      uri: mongodb://_lzb:lzb123456@42.192.79.230:27017/tester

@@ -26,4 +26,6 @@ public class HttpEntity implements Serializable {
     private Map<String,Object> params;
 
     private Map<String,String> headers;
+
+    private Integer sort;
 }
