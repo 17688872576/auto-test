@@ -15,6 +15,11 @@ public class HttpEntity implements Serializable {
     @Id
     private String id;
 
+    /**
+     * 客户端id
+     */
+    private Integer cid;
+
     private String title;
 
     private String description;

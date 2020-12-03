@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 public class HttpUtil {
 
@@ -258,4 +259,6 @@ public class HttpUtil {
             }
         }
     }
+
+    private static Map<String,Function<Object,Object>> maps = new HashMap<>();
 }

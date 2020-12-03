@@ -1,6 +1,11 @@
 package com.lzb.tester.dto;
 
-public class BaseResult<T> {
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class BaseResult<T> implements Serializable {
 
     private Integer code;
     private String msg;
@@ -12,7 +17,7 @@ public class BaseResult<T> {
         this.date = date;
     }
 
-    private BaseResult() { }
+    private BaseResult() {}
 
     public static <T>BaseResult<T> success(String msg){
         return new BaseResult<T>(ResultCode.SUCCESS.getCode(),msg,null);

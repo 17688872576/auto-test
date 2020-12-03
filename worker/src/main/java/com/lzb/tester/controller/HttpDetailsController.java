@@ -1,69 +1,62 @@
 package com.lzb.tester.controller;
 
 import com.lzb.tester.dto.BaseResult;
-import com.lzb.tester.dto.MongoPageInfo;
-import com.lzb.tester.dto.ResultCode;
+
 import com.lzb.tester.entity.HttpEntity;
 import com.lzb.tester.service.HttpDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
-public class HttpDetailsController {
+@RequestMapping("/http")
+public class HttpDetailsController extends ManageController<HttpEntity>{
 
     @Autowired
-    private HttpDetailsService<HttpEntity> service;
+    public HttpDetailsController(HttpDetailsService<HttpEntity> service) {
+        super.service = service;
+    }
 
     @PostMapping("/save")
     @ResponseBody
     public BaseResult save(@RequestBody HttpEntity entity){
-        HttpEntity httpEntity = service.save(entity);
-        return httpEntity != null ? BaseResult.success("保存成功") : BaseResult.error("保存失败");
+        return super.save(entity);
     }
 
     @DeleteMapping("/remove-batch")
     @ResponseBody
     public BaseResult remove(@RequestParam("idList") List<String> idList){
-        Long remove = service.remove(idList);
-        return remove != -1L ? BaseResult.success("删除成功") : BaseResult.error("删除失败");
+        return super.remove(idList);
     }
 
-    @DeleteMapping("/remove/{id}")
+    @DeleteMapping("/remove")
     @ResponseBody
-    public BaseResult remove(@PathVariable("id") String id){
-        Long remove = service.remove(id);
-        return remove != -1L ? BaseResult.success("删除成功") : BaseResult.error("删除失败");
+    public BaseResult remove(@RequestParam("id") String id){
+        return super.remove(id);
     }
 
-    @GetMapping("/findOne/{id}")
+    @GetMapping("/findOne")
     @ResponseBody
-    public BaseResult<HttpEntity> findOneById(@PathVariable("id") String id){
-        HttpEntity entity = service.findOneById(id);
-        return BaseResult.success(ResultCode.SUCCESS.getMsg(),entity);
+    public BaseResult<HttpEntity> findOneById(@RequestParam("id") String id){
+        return super.findOneById(id);
     }
 
     @GetMapping("/findAllBy")
     @ResponseBody
-    public BaseResult findAllBy(@RequestParam("index")Integer index,@RequestParam("size") Integer size,
-                                @RequestParam("key") String key,@RequestParam("value") Object value){
-        MongoPageInfo<HttpEntity> pageInfo = service.findAllBy(index, size, key, value);
-        return BaseResult.success(ResultCode.SUCCESS.getMsg(),pageInfo);
+    public BaseResult findAllBy(@RequestParam("index")Integer index, @RequestParam("size") Integer size,
+                                @RequestParam("key") String key, @RequestParam("value") Object value){
+        return super.findAllBy(index, size, key, value);
     }
 
     @PutMapping("/update")
     @ResponseBody
     public BaseResult update(@RequestBody HttpEntity entity){
-        Long update = service.update(entity);
-        return update != -1L ? BaseResult.success("更新成功") : BaseResult.error("更新失败");
+        return super.update(entity);
     }
 
     @GetMapping("/selectAll")
     @ResponseBody
     public BaseResult selectAll(@RequestParam("index")Integer index,@RequestParam("size") Integer size){
-        MongoPageInfo<HttpEntity> pageInfo = service.selectAll(index, size);
-        return BaseResult.success(ResultCode.SUCCESS.getMsg(),pageInfo);
+        return super.selectAll(index, size);
     }
 }
