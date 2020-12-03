@@ -11,13 +11,10 @@ import java.util.Map;
 
 @Document
 @Data
-@Builder
 public class ClientInfo implements Serializable {
 
     @Id
     private Integer id;
-
-    private Map<String,Object> variables;
 
     private String jdbcSource;
 

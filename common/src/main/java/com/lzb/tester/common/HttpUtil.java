@@ -1,5 +1,6 @@
 package com.lzb.tester.common;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lzb.tester.entity.HttpResult;
 import org.apache.commons.io.FileUtils;
@@ -7,9 +8,7 @@ import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -18,15 +17,19 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class HttpUtil {
 
@@ -125,14 +128,12 @@ public class HttpUtil {
         CloseableHttpClient httpClient = getRquest();
         HttpGet httpGet = new HttpGet();
         // 请求头设置
-        Map<String, String> opHeaders = Optional.ofNullable(headers).orElse(new HashMap<>());
-        opHeaders.forEach((k, v) -> httpGet.setHeader(k, v));
+        Optional.ofNullable(headers).ifPresent(h -> h.forEach((k, v) -> httpGet.setHeader(k, v)));
         try {
             URIBuilder uriBuilder = new URIBuilder(url);
+            Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> uriBuilder.setParameter(k, String.valueOf(v))));
             URI uri = uriBuilder.build();
             httpGet.setURI(uri);
-            Map<String, Object> opParams = Optional.ofNullable(params).orElse(new HashMap<>());
-            opParams.forEach((k, v) -> uriBuilder.setParameter(k, String.valueOf(v)));
             Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpGet));
             futureList.add(future);
         } catch (Exception e) {
@@ -146,12 +147,40 @@ public class HttpUtil {
     public static void post(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpPost httpPost = new HttpPost(url);
-        Optional.ofNullable(headers).orElse(new HashMap<>()).forEach((k, v) -> httpPost.setHeader(k, v));
-        try {
-            Map<String, Object> opParams = Optional.ofNullable(params).orElse(new HashMap<>());
+        Optional.ofNullable(headers).ifPresent(h -> h.forEach((k, v) -> httpPost.setHeader(k, v)));
+        Optional.ofNullable(params).ifPresent(p -> {
             ObjectMapper mapper = new ObjectMapper();
-            String s = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(opParams);
-            httpPost.setEntity(new ByteArrayEntity(s.getBytes("UTF-8")));
+            try {
+                String s = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(p);
+                httpPost.setEntity(new ByteArrayEntity(s.getBytes("UTF-8")));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        });
+        Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
+        futureList.add(future);
+    }
+
+    /**
+     * 参数拼接在url后面的post请求
+     */
+    public static void postOfUrl(String url, Map<String,Object> params, Map<String, String> headers) {
+        CloseableHttpClient httpClient = getRquest();
+        HttpPost httpPost = new HttpPost(url);
+        List<BasicNameValuePair> nameValuePairs = params.entrySet().stream()
+                .map(e -> new BasicNameValuePair(e.getKey(), String.valueOf(e.getValue())))
+                .collect(Collectors.toList());
+        try {
+            Optional.ofNullable(nameValuePairs).ifPresent(p-> {
+                try {
+                    httpPost.setEntity(new UrlEncodedFormEntity(p, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            });
+            Optional.ofNullable(headers).ifPresent(h->h.forEach((k, v) -> httpPost.setHeader(k, v)));
             Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
             futureList.add(future);
         } catch (Exception e) {
@@ -159,20 +188,35 @@ public class HttpUtil {
         }
     }
 
-    /**
-     * 参数拼接在url后面的post请求
-     */
-    public static void postOfUrl(String url, List<NameValuePair> params, Map<String, String> headers) {
+    public static void put(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
-        HttpPost httpPost = new HttpPost(url);
+        HttpPut httpPut = new HttpPut(url);
+        Optional.ofNullable(params).ifPresent(arg -> {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                String s = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arg);
+                httpPut.setEntity(new ByteArrayEntity(s.getBytes()));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        });
+        Optional.ofNullable(headers).ifPresent(arg -> arg.forEach((k, v) -> httpPut.setHeader(k, v)));
+        Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPut));
+        futureList.add(future);
+    }
+
+    public static void delete(String url, Map<String, Object> params, Map<String, String> headers) {
+        CloseableHttpClient httpClient = getRquest();
+        HttpDelete httpDelete = new HttpDelete();
         try {
-            List<NameValuePair> opParams = Optional.ofNullable(params).orElse(new ArrayList<>());
-            httpPost.setEntity(new UrlEncodedFormEntity(opParams, "UTF-8"));
-            Map<String, String> opHeaders = Optional.ofNullable(headers).orElse(new HashMap<>());
-            opHeaders.forEach((k, v) -> httpPost.setHeader(k, v));
-            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
+            URIBuilder uriBuilder = new URIBuilder(url);
+            Optional.ofNullable(params).ifPresent(p->p.forEach((k,v)->uriBuilder.setParameter(k,String.valueOf(v))));
+            URI uri = uriBuilder.build();
+            httpDelete.setURI(uri);
+            Optional.ofNullable(headers).ifPresent(h->h.forEach((k,v)->httpDelete.setHeader(k,v)));
+            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpDelete));
             futureList.add(future);
-        } catch (Exception e) {
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
@@ -259,6 +303,4 @@ public class HttpUtil {
             }
         }
     }
-
-    private static Map<String,Function<Object,Object>> maps = new HashMap<>();
 }

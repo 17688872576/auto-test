@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 @Document
-@Builder
 public class StatementInfo implements Serializable {
 
     @Id

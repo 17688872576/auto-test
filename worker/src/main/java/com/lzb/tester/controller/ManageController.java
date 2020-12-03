@@ -17,12 +17,12 @@ public class ManageController<T> {
 
     public BaseResult remove(List<String> idList){
         Long remove = service.remove(idList);
-        return remove != -1L ? BaseResult.success("删除成功") : BaseResult.error("删除失败");
+        return remove != -1L ? BaseResult.success("删除成功",remove) : BaseResult.error("删除失败",remove);
     }
 
     public BaseResult remove(String id){
         Long remove = service.remove(id);
-        return remove != -1L ? BaseResult.success("删除成功") : BaseResult.error("删除失败");
+        return remove != -1L ? BaseResult.success("删除成功",remove) : BaseResult.error("删除失败",remove);
     }
 
     public BaseResult<T> findOneById(String id){
@@ -37,7 +37,7 @@ public class ManageController<T> {
 
     public BaseResult update(T entity){
         Long update = service.update(entity);
-        return update != -1L ? BaseResult.success("更新成功") : BaseResult.error("更新失败");
+        return update != -1L ? BaseResult.success("更新成功",update) : BaseResult.error("更新失败",update);
     }
 
     public BaseResult selectAll(Integer index,Integer size){

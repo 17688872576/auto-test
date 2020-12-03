@@ -9,7 +9,6 @@ import java.util.Map;
 
 @Document
 @Data
-@Builder
 public class HttpEntity implements Serializable {
 
     @Id

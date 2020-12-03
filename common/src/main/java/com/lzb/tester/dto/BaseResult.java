@@ -9,12 +9,12 @@ public class BaseResult<T> implements Serializable {
 
     private Integer code;
     private String msg;
-    private T date;
+    private T data;
 
-    private BaseResult(Integer code, String msg, T date) {
+    private BaseResult(Integer code, String msg, T data) {
         this.code = code;
         this.msg = msg;
-        this.date = date;
+        this.data = data;
     }
 
     private BaseResult() {}
@@ -32,11 +32,15 @@ public class BaseResult<T> implements Serializable {
     }
 
     public static <T>BaseResult<T> error(String msg){
-        return new BaseResult<>(ResultCode.ERROR.getCode(),msg,null);
+        return error(msg,null);
     }
 
     public static <T>BaseResult<T> error(){
         return error(ResultCode.ERROR.getMsg());
+    }
+
+    public static <T>BaseResult<T> error(String msg,T data){
+        return new BaseResult<>(ResultCode.ERROR.getCode(),msg,data);
     }
 
     public static <T>BaseResult<T> parameterErr(String msg){

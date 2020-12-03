@@ -11,9 +11,9 @@ import java.util.Map;
 
 public class JdbcUtil {
 
-    private static DruidDataSource dataSource = null;
+    private DruidDataSource dataSource = null;
 
-    public static void selectDataSource(JdbcConnectInfo connectInfo) {
+    public void selectDataSource(JdbcConnectInfo connectInfo) {
         dataSource = new DruidDataSource();
         dataSource.setUrl(connectInfo.getUrl());
         try {
@@ -33,7 +33,7 @@ public class JdbcUtil {
         }
     }
 
-    public static synchronized Connection getConn() {
+    public Connection getConn() {
         if (dataSource == null || dataSource.isClosed())
             throw new RuntimeException("数据库连接池未初始化!");
         try {
@@ -45,7 +45,7 @@ public class JdbcUtil {
         return null;
     }
 
-    public static List<Map<String,Object>> executeSelect(String sql,Object ... args){
+    public List<Map<String,Object>> executeSelect(String sql,Object ... args){
         char[] chars = sql.toCharArray();
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
@@ -72,7 +72,7 @@ public class JdbcUtil {
         }
     }
 
-    public static boolean excuteUpdate(String sql,Object ... args){
+    public boolean excuteUpdate(String sql,Object ... args){
         char[] chars = sql.toCharArray();
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
@@ -107,7 +107,7 @@ public class JdbcUtil {
         }
     }
 
-    public static void close(){
+    public void close(){
         dataSource.close();
     }
 
