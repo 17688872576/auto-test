@@ -34,8 +34,6 @@ public class ApiTests {
         params.put("Version",null);
         HttpUtil.get(api,params,null);
 
-        List<HttpResult> httpResult = HttpUtil.getHttpResult();
-        System.out.println("===========>"+httpResult.get(0).getContent());
     }
 
     /**
@@ -51,8 +49,6 @@ public class ApiTests {
         params.put("isHight",1);
         HttpUtil.get(api,params,null);
 
-        List<HttpResult> httpResult = HttpUtil.getHttpResult();
-        System.out.println("===========>"+httpResult.get(0).getContent());
     }
 
 

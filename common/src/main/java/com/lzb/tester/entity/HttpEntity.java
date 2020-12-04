@@ -31,5 +31,5 @@ public class HttpEntity implements Serializable {
 
     private Map<String,String> headers;
 
-    private Integer sort;
+    private Boolean isLogin;
 }

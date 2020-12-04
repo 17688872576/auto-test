@@ -1,9 +1,12 @@
 package com.lzb.tester.common;
 
 import com.lzb.tester.entity.HttpEntity;
+import com.lzb.tester.entity.HttpResult;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class HttpMethodUtil {
 
@@ -15,7 +18,7 @@ public class HttpMethodUtil {
         String DELETE = "DELETE";
     }
 
-    public static Map<String,Consumer<HttpEntity>> maps = new HashMap<>();
+    public static Map<String,Function<HttpEntity,HttpResult>> maps = new HashMap<>();
 
     static {
         maps.put(Method.GET,e->HttpUtil.get(e.getUrl(),e.getParams(),e.getHeaders()));

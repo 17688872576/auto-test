@@ -4,10 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.lzb.tester.entity.JdbcConnectInfo;
 import com.mysql.cj.jdbc.Driver;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JdbcUtil {
 
@@ -45,18 +42,19 @@ public class JdbcUtil {
         return null;
     }
 
-    public List<Map<String,Object>> executeSelect(String sql,Object ... args){
+    public List<Map<String,Object>> executeSelect(String sql, Queue<Object> args){
         char[] chars = sql.toCharArray();
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '?') ++count;
         }
-        if (args.length < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
+        if (args.size() < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
         Connection connection = getConn();
         try {
             PreparedStatement prepareStatement = connection.prepareStatement(sql);
             for (int i = 1; i <= count; i++) {
-                prepareStatement.setObject(i,args[i-1]);
+                Object arg = args.poll();
+                prepareStatement.setObject(i,arg);
             }
             ResultSet resultSet = prepareStatement.executeQuery();
             List<Map<String,Object>> dataList = new ArrayList<>();
@@ -72,18 +70,18 @@ public class JdbcUtil {
         }
     }
 
-    public boolean excuteUpdate(String sql,Object ... args){
+    public boolean excuteUpdate(String sql,Queue<Object> args){
         char[] chars = sql.toCharArray();
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '?') ++count;
         }
-        if (args.length < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
+        if (args.size() < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
         Connection connection = getConn();
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
             for (int i = 1; i <= count; i++) {
-                statement.setObject(i,args[i-1]);
+                statement.setObject(i,args.poll());
             }
             return statement.execute();
         } catch (SQLException e) {
@@ -111,6 +109,11 @@ public class JdbcUtil {
         dataSource.close();
     }
 
+    public static final String SELECT = "SELECT";
+    public static final String UPDATE = "UPDATE";
+
+
+
 //    public static void main(String[] args) {
 //        JdbcConnectInfo info = JdbcConnectInfo.builder().url("jdbc:mysql://rm-wz9ntplso9cl63qykwo.mysql.rds.aliyuncs.com:3306/abcpingjiae")
 //                .username("lixuan")
@@ -120,6 +123,5 @@ public class JdbcUtil {
 //        String sql = "select * from fksdtb_user where username=? and usertype=?";
 //        List<Map<String, Object>> maps = executeSelect(sql, "j_R2P2eVRdbg@test.new", 1);
 //        System.out.println(maps);
-
 //    }
 }

@@ -21,6 +21,8 @@ public class StatementInfo implements Serializable {
 
     private String statement;
 
+    private String executeType;
+
     private List<String> variableKeys;
 
     private String jdbcSource;

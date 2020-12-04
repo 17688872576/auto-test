@@ -13,6 +13,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -39,12 +40,10 @@ public class HttpUtil {
     /* 创建一个ThreadLocal，用来存放 CloseableHttpClient */
     private static ThreadLocal<CloseableHttpClient> threadLocal = new ThreadLocal<>();
 
-    private static final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 8, 2, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-
-    private static List<Future<CloseableHttpResponse>> futureList = new CopyOnWriteArrayList<>();
-
     /* 默认超时时间为6秒 */
     private static final int timeOut = 6000;
+
+    private static BasicCookieStore cookieStore = new BasicCookieStore();
 
     static {
         // 设置最大连接数
@@ -110,6 +109,7 @@ public class HttpUtil {
             return false;
         });
         // 创建httpClient
+
         CloseableHttpClient httpClient = HttpClients.custom()
                 // 把请求相关的超时信息设置到连接客户端
                 .setDefaultRequestConfig(requestConfig)
@@ -117,6 +117,7 @@ public class HttpUtil {
                 .setRetryHandler(retry)
                 // 配置连接池管理对象
                 .setConnectionManager(connManager)
+                .setDefaultCookieStore(cookieStore)
                 .build();
         threadLocal.set(httpClient);
     }
@@ -124,7 +125,7 @@ public class HttpUtil {
     /**
      * get请求
      */
-    public static void get(String url, Map<String, Object> params, Map<String, String> headers) {
+    public static HttpResult get(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpGet httpGet = new HttpGet();
         // 请求头设置
@@ -134,39 +135,43 @@ public class HttpUtil {
             Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> uriBuilder.setParameter(k, String.valueOf(v))));
             URI uri = uriBuilder.build();
             httpGet.setURI(uri);
-            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpGet));
-            futureList.add(future);
+            CloseableHttpResponse response = httpClient.execute(httpGet);
+            return closeRequest(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            return new HttpResult("",500,e.getMessage());
         }
     }
 
     /**
      * post请求
      */
-    public static void post(String url, Map<String, Object> params, Map<String, String> headers) {
+    public static HttpResult post(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpPost httpPost = new HttpPost(url);
         Optional.ofNullable(headers).ifPresent(h -> h.forEach((k, v) -> httpPost.setHeader(k, v)));
+        StringBuilder builder = new StringBuilder();
         Optional.ofNullable(params).ifPresent(p -> {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 String s = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(p);
                 httpPost.setEntity(new ByteArrayEntity(s.getBytes("UTF-8")));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                builder.append(e.getMessage()).append("\t");
             }
         });
-        Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
-        futureList.add(future);
+        try {
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            return closeRequest(response);
+        } catch (IOException e) {
+            builder.append(e.getMessage());
+            return new HttpResult("",500,builder.toString());
+        }
     }
 
     /**
      * 参数拼接在url后面的post请求
      */
-    public static void postOfUrl(String url, Map<String,Object> params, Map<String, String> headers) {
+    public static HttpResult postOfUrl(String url, Map<String,Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpPost httpPost = new HttpPost(url);
         List<BasicNameValuePair> nameValuePairs = params.entrySet().stream()
@@ -181,14 +186,14 @@ public class HttpUtil {
                 }
             });
             Optional.ofNullable(headers).ifPresent(h->h.forEach((k, v) -> httpPost.setHeader(k, v)));
-            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
-            futureList.add(future);
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            return closeRequest(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            return new HttpResult("",500,e.getMessage());
         }
     }
 
-    public static void put(String url, Map<String, Object> params, Map<String, String> headers) {
+    public static HttpResult put(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpPut httpPut = new HttpPut(url);
         Optional.ofNullable(params).ifPresent(arg -> {
@@ -201,11 +206,15 @@ public class HttpUtil {
             }
         });
         Optional.ofNullable(headers).ifPresent(arg -> arg.forEach((k, v) -> httpPut.setHeader(k, v)));
-        Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPut));
-        futureList.add(future);
+        try {
+            CloseableHttpResponse response = httpClient.execute(httpPut);
+            return closeRequest(response);
+        } catch (IOException e) {
+            return new HttpResult("",500,e.getMessage());
+        }
     }
 
-    public static void delete(String url, Map<String, Object> params, Map<String, String> headers) {
+    public static HttpResult delete(String url, Map<String, Object> params, Map<String, String> headers) {
         CloseableHttpClient httpClient = getRquest();
         HttpDelete httpDelete = new HttpDelete();
         try {
@@ -214,27 +223,27 @@ public class HttpUtil {
             URI uri = uriBuilder.build();
             httpDelete.setURI(uri);
             Optional.ofNullable(headers).ifPresent(h->h.forEach((k,v)->httpDelete.setHeader(k,v)));
-            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpDelete));
-            futureList.add(future);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+            CloseableHttpResponse response = httpClient.execute(httpDelete);
+            return closeRequest(response);
+        } catch (Exception e) {
+            return new HttpResult("",500,e.getMessage());
         }
     }
 
     /**
      * 上传文件post请求
      */
-    public static void postMultipart(String url, Map<String, String> headers, MultipartEntityBuilder builder) {
+    public static HttpResult postMultipart(String url, Map<String, String> headers, MultipartEntityBuilder builder) {
         CloseableHttpClient httpClient = getRquest();
         HttpPost httpPost = new HttpPost(url);
         Optional.ofNullable(headers).orElse(new HashMap<>()).forEach((k, v) -> httpPost.setHeader(k, v));
         MultipartEntityBuilder opBuilder = Optional.ofNullable(builder).orElse(MultipartEntityBuilder.create());
         httpPost.setEntity(opBuilder.build());
         try {
-            Future<CloseableHttpResponse> future = threadPool.submit(() -> httpClient.execute(httpPost));
-            futureList.add(future);
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            return closeRequest(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            return new HttpResult("",500,e.getMessage());
         }
     }
 
@@ -261,23 +270,6 @@ public class HttpUtil {
         }
     }
 
-    public static List<HttpResult> getHttpResult() {
-        List<HttpResult> resultList = new ArrayList<>();
-        futureList.forEach(f -> {
-            try {
-                CloseableHttpResponse response = f.get();
-                HttpResult httpResult = closeRequest(response);
-                resultList.add(httpResult);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e.getMessage());
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        });
-        futureList.clear();
-        return resultList;
-    }
-
     /**
      * 关闭连接
      */
@@ -291,6 +283,7 @@ public class HttpUtil {
             result.setStatus(statusCode);
             result.setContent(content);
             result.setHeaders(Arrays.toString(allHeaders));
+            result.setCookies(cookieStore.getCookies());
             return result;
         } catch (IOException e) {
             e.printStackTrace();
