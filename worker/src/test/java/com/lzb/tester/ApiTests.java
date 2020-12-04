@@ -12,10 +12,11 @@ import java.util.Map;
 public class ApiTests {
 
     static {
-        JdbcConnectInfo info = JdbcConnectInfo.builder().url("jdbc:mysql://rm-wz9ntplso9cl63qykwo.mysql.rds.aliyuncs.com:3306/abcpingjiae")
-                .username("lixuan")
-                .password("Ljw16Vl@").build();
-        JdbcUtil.selectDataSource(info);
+        JdbcConnectInfo info = new JdbcConnectInfo();
+//        JdbcConnectInfo info = JdbcConnectInfo.builder().url("jdbc:mysql://rm-wz9ntplso9cl63qykwo.mysql.rds.aliyuncs.com:3306/abcpingjiae")
+//                .username("lixuan")
+//                .password("Ljw16Vl@").build();
+//        JdbcUtil.selectDataSource(info);
     }
 
     private static final String url = "http://47.107.83.33:1010";
@@ -57,7 +58,8 @@ public class ApiTests {
 
     public Integer getUserId(String username){
         String sql = "SELECT id FROM fksdtb_user WHERE UserName=? and usertype=1";
-        List<Map<String, Object>> maps = JdbcUtil.executeSelect(sql, username);
-        return (Integer)maps.get(0).get("Id");
+//        List<Map<String, Object>> maps = JdbcUtil.executeSelect(sql, username);
+//        return (Integer)maps.get(0).get("Id");
+        return null;
     }
 }

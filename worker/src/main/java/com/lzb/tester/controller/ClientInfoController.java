@@ -24,7 +24,8 @@ public class ClientInfoController extends ManageController<ClientInfo>{
     @PostMapping("/register")
     @ResponseBody
     public BaseResult register(HttpServletRequest request){
-        ClientInfo info = ClientInfo.builder().id(request.hashCode()).build();
+        ClientInfo info = new ClientInfo();
+        info.setId(request.hashCode());
         return super.save(info);
     }
 

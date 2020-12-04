@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 @Document
 @Data
-@Builder
 public class JdbcConnectInfo implements Serializable {
 
     @Id
