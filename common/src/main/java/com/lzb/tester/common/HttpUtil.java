@@ -259,6 +259,4 @@ public class HttpUtil {
             }
         }
     }
-
-    private static Map<String,Function<Object,Object>> maps = new HashMap<>();
 }
