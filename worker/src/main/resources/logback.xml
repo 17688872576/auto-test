@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <!--应用名称-->
+    <property name="APP_NAME" value="auto-test-worker"/>
+    <!-- 本地的日志路径 -->
+    <property name="LOG_PATH" value="./worker-log"/>
+    <!-- linu下的日志路径 -->
+    <!--<property name="LOG_PATH" value="/var/auto-test/worker-log"/>-->
+    <!--定义上下文-->
+    <contextName>${APP_NAME}</contextName>
+
+    <!--                           控制台日志                         -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder的默认实现类是ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--                              异常日志                             -->
+    <appender name="error_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--日志文件只输出ERROR-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!--过滤 ERROR-->
+            <level>ERROR</level>
+            <!--匹配到就禁止-->
+            <onMatch>ACCEPT</onMatch>
+            <!--没有匹配到就允许-->
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/error/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} ============= %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!--指定包日志输出路径-->
+    <logger name="com.lzb.tester" level="ERROR" additivity="false">
+        <appender-ref ref="error_log"/>
+    </logger>
+
+
+    <!--                              普通日志配置                           -->
+    <appender name="info_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--日志文件只输出INFO-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!--过滤 ERROR-->
+            <level>INFO</level>
+            <!--匹配到就禁止-->
+            <onMatch>ACCEPT</onMatch>
+            <!--没有匹配到就允许-->
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/info/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} ============= %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!--指定包日志输出路径-->
+    <logger name="com.lzb.tester" level="INFO" additivity="false">
+        <appender-ref ref="info_log"/>
+    </logger>
+
+    <!--输出到logstash的appender-->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:4560</destination>
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

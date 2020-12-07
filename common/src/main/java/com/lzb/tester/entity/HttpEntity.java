@@ -1,9 +1,8 @@
 package com.lzb.tester.entity;
-import lombok.Builder;
+
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.io.Serializable;
 import java.util.Map;
 
@@ -13,7 +12,6 @@ public class HttpEntity implements Serializable {
 
     @Id
     private String id;
-
     /**
      * 客户端id
      */
@@ -32,4 +30,6 @@ public class HttpEntity implements Serializable {
     private Map<String,String> headers;
 
     private Boolean isLogin;
+
+    private String tokenKey;
 }

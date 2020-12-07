@@ -18,7 +18,7 @@ public class JdbcUtil {
             dataSource.setUsername(connectInfo.getUsername());
             dataSource.setPassword(connectInfo.getPassword());
             //设置最大连接数
-            dataSource.setMaxActive(connectInfo.getMaxActive() == null ? 12 : connectInfo.getMaxActive());//CUP*2+1
+            dataSource.setMaxActive(connectInfo.getMaxActive() == null ? 12 : connectInfo.getMaxActive());
             //设置最小的闲置连接数
             dataSource.setMinIdle(connectInfo.getMinIdle() == null ? 1 : connectInfo.getMinIdle());
             //设置初始的连接数

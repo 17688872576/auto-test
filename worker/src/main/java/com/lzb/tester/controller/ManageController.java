@@ -11,8 +11,8 @@ public class ManageController<T> {
     protected ManageService<T> service;
 
     public BaseResult save(T entity){
-        T jdbcConnectInfo = service.save(entity);
-        return jdbcConnectInfo != null ? BaseResult.success("保存成功") : BaseResult.error("保存失败");
+        T info = service.save(entity);
+        return info != null ? BaseResult.success("保存成功",info) : BaseResult.error("保存失败",info);
     }
 
     public BaseResult remove(List<String> idList){

@@ -13,15 +13,12 @@ import java.util.Map;
 @RequestMapping("/client-info")
 public class ClientInfoController extends ManageController<ClientInfo>{
 
-//    @Autowired
-//    private Map<Integer,ClientInfo> clientContainer;
-
     @Autowired
     public ClientInfoController(ClientInfoService<ClientInfo> service) {
         super.service = service;
     }
 
-    @PostMapping("/register")
+    @GetMapping("/register")
     @ResponseBody
     public BaseResult register(HttpServletRequest request){
         ClientInfo info = new ClientInfo();

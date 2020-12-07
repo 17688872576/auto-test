@@ -16,13 +16,6 @@ public class WorkerApplication {
         SpringApplication.run(WorkerApplication.class,args);
     }
 
-//    private static Map<Integer,ClientInfo> container = new HashMap<>();
-//
-//    @Bean("clientContainer")
-//    public Map<Integer,ClientInfo> getContainer(){
-//        return container;
-//    }
-//
     @Scheduled(cron = "0 0 8 * * ?")
     public void clearContainer(){
         JdbcPool.taskQueue.clear();
