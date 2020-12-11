@@ -48,6 +48,9 @@ public class JdbcUtil {
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '?') ++count;
         }
+        if (count == 0){
+            return executeSelect(sql);
+        }
         if (args.size() < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
         Connection connection = getConn();
         try {
@@ -70,12 +73,41 @@ public class JdbcUtil {
         }
     }
 
+    private List<Map<String,Object>> executeSelect(String sql){
+        Connection conn = getConn();
+        try {
+            PreparedStatement statement = conn.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+            List<Map<String,Object>> dataList = new ArrayList<>();
+            while (resultSet.next()){
+                ResultSetMetaData metaData = resultSet.getMetaData();
+                Map<String, Object> data = eachColumn(resultSet, metaData);
+                dataList.add(data);
+            }
+            return dataList;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private boolean excuteUpdate(String sql){
+        Connection connection = getConn();
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            return statement.execute();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public boolean excuteUpdate(String sql,Queue<Object> args){
         char[] chars = sql.toCharArray();
         int count = 0;
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == '?') ++count;
         }
+        if (count == 0) return excuteUpdate(sql);
         if (args.size() < count) throw new RuntimeException("sql语句里的变量和输入的变量不一致!");
         Connection connection = getConn();
         try {

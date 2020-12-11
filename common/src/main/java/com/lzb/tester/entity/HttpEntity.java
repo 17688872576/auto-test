@@ -32,4 +32,8 @@ public class HttpEntity implements Serializable {
     private Boolean isLogin;
 
     private String tokenKey;
+
+    private Integer sort;
+
+    private String type;
 }

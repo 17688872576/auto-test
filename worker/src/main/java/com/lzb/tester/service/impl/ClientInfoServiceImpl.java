@@ -28,7 +28,11 @@ public class ClientInfoServiceImpl implements ClientInfoService<ClientInfo> {
 
     @Override
     public ClientInfo save(ClientInfo entity) {
-        return mongoTemplate.insert(entity);
+        ClientInfo info = mongoTemplate.findOne(new Query(Criteria.where("username").is(entity.getUsername())), ClientInfo.class);
+        if (info == null){
+            return mongoTemplate.insert(entity);
+        }
+        return null;
     }
 
     @Override
@@ -84,5 +88,10 @@ public class ClientInfoServiceImpl implements ClientInfoService<ClientInfo> {
         List<ClientInfo> entities = mongoTemplate.find(query, ClientInfo.class);
         Page<ClientInfo> page = PageableExecutionUtils.getPage(entities, pageRequest, () -> count);
         return MongoUtils.pageInfoCopy(page);
+    }
+
+    @Override
+    public ClientInfo findOneByname(String username) {
+        return null;
     }
 }

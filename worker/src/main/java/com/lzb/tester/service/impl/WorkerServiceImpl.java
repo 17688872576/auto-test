@@ -46,14 +46,14 @@ public class WorkerServiceImpl implements WorkerService {
                 if (poll instanceof HttpEntity) {
                     HttpEntity entity = (HttpEntity) poll;
                     /* 请求头处理(把使用了变量的参数值替换成对应的值) */
-                    httpHeadersHandle(cid,entity);
+                    httpHeadersHandle(cid, entity);
                     /* 请求参数处理(把使用了变量的参数值替换成对应的值) */
                     httpParametersHandle(cid, entity);
                     /* 执行http请求，并返回结果，如果是登录请求，保存cookie到其他的请求 */
                     HttpResult result = executeHttpResult(headers, entity);
                     /* 如果是登录请求，判断返回的结果或者headers存不存在token，有的话存到用户变量*/
                     if (entity.getIsLogin() && !entity.getTokenKey().equals(""))
-                        saveToken(cid,result,entity.getTokenKey());
+                        saveToken(cid, result, entity.getTokenKey());
                     resultList.add(result);
                 } else if (poll instanceof StatementInfo) {
                     Object result = executeJdbcRequest(cid, (StatementInfo) poll);
@@ -75,7 +75,7 @@ public class WorkerServiceImpl implements WorkerService {
         Queue queue = taskQueue.get(cid);
         queue.add(task);
         taskQueue.put(cid, queue);
-        log.info("任务 {} 已添加",task);
+        log.info("任务 {} 已添加", task);
     }
 
     public void selectJdbcSource(Integer cid, String id) {
@@ -83,10 +83,10 @@ public class WorkerServiceImpl implements WorkerService {
             Query query = new Query(Criteria.where("_id").is(id));
             JdbcConnectInfo info = template.findOne(query, JdbcConnectInfo.class);
             JdbcUtil jdbcUtil = new JdbcUtil();
-            Optional.ofNullable(info).ifPresent(f->{
+            Optional.ofNullable(info).ifPresent(f -> {
                 jdbcUtil.selectDataSource(f);
                 JdbcPool.putPool(cid, jdbcUtil);
-                log.info("数据源已切换：{}",f.getJdbcSource());
+                log.info("数据源已切换：{}", f.getJdbcSource());
             });
         }
     }
@@ -99,10 +99,10 @@ public class WorkerServiceImpl implements WorkerService {
             Map<String, Object> map = variableMap.get(variable.getCid());
             map.put(variable.getKey(), variable.getValue());
             variableMap.put(variable.getCid(), map);
-            log.info("变量：{}={} 已添加",variable.getKey(),variable.getValue());
+            log.info("变量：{}={} 已添加", variable.getKey(), variable.getValue());
             return "success";
         } catch (Exception e) {
-            log.error("添加变量时出现了错误：{}",e.getMessage());
+            log.error("添加变量时出现了错误：{}", e.getMessage());
             return e.getMessage();
         }
     }
@@ -110,7 +110,7 @@ public class WorkerServiceImpl implements WorkerService {
     private String regexHandle(RegexHandleInfo regexInfo) {
         Integer cid = regexInfo.getCid();
         Map<String, Object> objectMap = variableMap.get(cid);
-        StringBuilder builder = new StringBuilder("[regexHandle] sourceKey为空!");
+        StringBuilder builder = new StringBuilder();
         Optional.ofNullable(objectMap.get(regexInfo.getSourceKey())).ifPresent(obj -> {
             if (obj instanceof String) {
                 String value = (String) obj;
@@ -120,8 +120,8 @@ public class WorkerServiceImpl implements WorkerService {
                     String resultKey = regexInfo.getResultKey();
                     UserVariables variables = new UserVariables(regexInfo.getCid(), resultKey, group);
                     String s = addVariable(variables);
-                    builder.setLength(0);
                     builder.append("[regexHandle] ").append(s);
+                    log.info("正则表达式处理器：{}",s);
                 }
             }
         });
@@ -146,7 +146,7 @@ public class WorkerServiceImpl implements WorkerService {
                     addVariable(var);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
-                    log.error("JdbcRequest错误：{}",e.getMessage());
+                    log.error("JdbcRequest错误：{}", e.getMessage());
                 }
             });
             return maps;
@@ -166,6 +166,7 @@ public class WorkerServiceImpl implements WorkerService {
             result = HttpMethodUtil.maps.get(httpEntity.getMethod()).apply(httpEntity);
         } catch (NullPointerException e) {
             result = new HttpResult(null, 500, e.getMessage());
+            log.error("未选择正确的请求方式");
         }
         if (httpEntity.getIsLogin()) {
             List<Cookie> cookies = result.getCookies();
@@ -211,27 +212,27 @@ public class WorkerServiceImpl implements WorkerService {
             builder.append(name).append("=").append(value).append(";");
         });
         headers.put("Cookie", builder.toString());
+        log.info("cookie已保存");
     }
 
     /**
      * 存到用户的变量中
-     * @param cid 客户端id
-     * @param result http返回结果
+     *
+     * @param cid      客户端id
+     * @param result   http返回结果
      * @param tokenKey token的变量名
      */
-    private void saveToken(Integer cid,HttpResult result,String tokenKey) {
-        String headers = result.getHeaders();
-        String content = result.getContent();
-        Optional.ofNullable(headers).ifPresent(h->{
+    private void saveToken(Integer cid, HttpResult result, String tokenKey) {
+        Optional.ofNullable(result.getHeaders()).ifPresent(h -> {
             if (h.contains("token")){
-                UserVariables var = new UserVariables(cid,tokenKey,headers);
-                addVariable(var);
+                addVariable(new UserVariables(cid, tokenKey, h));
+                log.info("token已存入变量:{}",tokenKey);
             }
         });
-        Optional.ofNullable(content).ifPresent(c->{
+        Optional.ofNullable(result.getContent()).ifPresent(c -> {
             if (c.contains("token")){
-                UserVariables var = new UserVariables(cid,tokenKey,content);
-                addVariable(var);
+                addVariable(new UserVariables(cid, tokenKey, c));
+                log.info("token已存入变量:{}",tokenKey);
             }
         });
     }

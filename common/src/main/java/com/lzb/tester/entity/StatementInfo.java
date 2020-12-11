@@ -28,4 +28,6 @@ public class StatementInfo implements Serializable {
     private String jdbcSource;
 
     private String resultKey;
+
+    private String type;
 }

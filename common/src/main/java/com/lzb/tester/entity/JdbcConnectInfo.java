@@ -28,4 +28,6 @@ public class JdbcConnectInfo implements Serializable {
     private Integer initialSize;
 
     private Long maxWait;
+
+    private String type;
 }

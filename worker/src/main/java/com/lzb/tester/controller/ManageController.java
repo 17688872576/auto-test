@@ -12,7 +12,7 @@ public class ManageController<T> {
 
     public BaseResult save(T entity){
         T info = service.save(entity);
-        return info != null ? BaseResult.success("保存成功",info) : BaseResult.error("保存失败",info);
+        return info != null ? BaseResult.success("保存成功",info) : BaseResult.error("保存失败");
     }
 
     public BaseResult remove(List<String> idList){

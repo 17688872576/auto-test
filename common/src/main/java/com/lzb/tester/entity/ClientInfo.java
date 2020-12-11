@@ -13,4 +13,6 @@ public class ClientInfo implements Serializable {
     private Integer id;
 
     private String jdbcSource;
+
+    private String username;
 }

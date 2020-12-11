@@ -18,12 +18,15 @@ public class ClientInfoController extends ManageController<ClientInfo>{
         super.service = service;
     }
 
-    @GetMapping("/register")
+    @PostMapping("/register")
     @ResponseBody
-    public BaseResult register(HttpServletRequest request){
-        ClientInfo info = new ClientInfo();
+    public BaseResult register(ClientInfo info, HttpServletRequest request){
         info.setId(request.hashCode());
-        return super.save(info);
+        BaseResult result = super.save(info);
+        if (result.getCode() == 500){
+
+        }
+        return null;
     }
 
     @DeleteMapping("/remove-batch")
