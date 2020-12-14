@@ -11,8 +11,8 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.io.InputStream;
 
-@ServerEndpoint(value = "/log/{hashId}")
-@Component
+//@ServerEndpoint(value = "/log/{hashId}")
+//@Component
 public class LogWebSocketHandle {
 
     private Process process;
