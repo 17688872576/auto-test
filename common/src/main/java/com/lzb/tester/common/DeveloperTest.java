@@ -3,7 +3,7 @@ package com.lzb.tester.common;
 public class DeveloperTest {
 
     public static void main(String[] args) {
-        System.out.println("hahaha你在哪?");
+        System.out.println();
         try {
             Thread.sleep(1300);
         } catch (InterruptedException e) {
