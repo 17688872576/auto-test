@@ -5,5 +5,6 @@ public class DeveloperTest {
 
     public static void main(String[] args) {
         Thread.yield();
+        System.out.println();
     }
 }
